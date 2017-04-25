@@ -1,0 +1,509 @@
+<?php
+
+function itlab_site_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id){
+    case 'user_login':
+      // User login form
+      itlab_site_unset_field_desc($form, 'name');
+      itlab_site_unset_field_desc($form, 'pass');
+      $form['#attributes']['class'][] = 'sign-form';
+      
+      $form['name']['#attributes']['class'][] = "form-control";
+      
+      $form['pass']['#attributes']['class'][] = "form-control";
+      $form['pass']['#suffix'] = '<div class="clearfix"></div>';
+      $form['pass']['#custom_theme'] = 'login_pass';
+      
+      
+      $form['actions']['#attributes']['class'][] = "row";
+      
+      $form['actions']['register_link'] = array(
+        '#markup'=> '<a href="/user/register">Sign Up</a>',
+        '#weight' => 1,
+      );
+      $form['actions']['register_link']['#prefix'] = '<div class="col-xs-6 text-center nopadding">';
+      $form['actions']['register_link']['#suffix'] = '</div>';
+      
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-login';
+      $form['actions']['submit']['#prefix'] = '<div class="col-xs-6 text-center nopadding">';
+      $form['actions']['submit']['#suffix'] = '</div>';
+      $form['actions']['submit']['#weight'] = 2;
+      
+      break;
+    case 'user_register_form':
+      // User register form
+      
+      $form['#process'][] = 'itlab_site_user_registration_process';
+      
+      $form['#attributes']['class'][] = 'sign-form';
+      
+      $form['actions']['#prefix'] = '<div class="bottom-form-action">';
+      $form['actions']['login_link'] = array(
+        '#markup'=> '<a href="/user/login">Back to login</a>',
+        '#weight' => 1,
+      );
+      $form['actions']['#attributes']['class'][] = "row";
+      $form['actions']['login_link']['#prefix'] = '<div class="col-xs-6 text-center nopadding">';
+      $form['actions']['login_link']['#suffix'] = '</div>';
+      
+      $form['actions']['submit']['#prefix'] = '<div class="col-xs-6 text-center nopadding">';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-login';
+      $form['actions']['submit']['#suffix'] = '</div>';
+      $form['actions']['#suffix'] = '</div>';
+      
+      
+      $form['account']['name']['#attributes']['class'][] = "form-control";
+      $form['account']['name']['#custom_theme'] = 'register_form_element';
+      
+      $form['account']['mail']['#attributes']['class'][] = "form-control";
+      $form['account']['mail']['#custom_theme'] = 'register_form_element';
+      $form['personal_data'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Погоджуюсь на обробку персональних данних'),
+        '#required' => TRUE,
+      );
+      $form['personal_data']['#attributes']['class'][] = 'col-xs-12';
+    
+      break;
+    case 'user_pass':
+      // User reset password form
+      $form['#prefix'] = '<div class="center-block col-md-4 col-sm-8 col-xs-10">';
+      $form['#attributes']['class'][] = 'sign-form';
+      $form['name']['#attributes']['class'][] = "form-control";
+      
+      
+      $form['actions']['#attributes']['class'][] = "row";
+      
+      
+      $form['actions']['submit']['#attributes']['class'][] = 'btn-login';
+      $form['actions']['submit']['#prefix'] = '<div class="col-xs-6 text-center nopadding">';
+      $form['actions']['submit']['#value'] = 'Reset';
+      $form['actions']['submit']['#suffix'] = '</div>';
+      $form['actions']['submit']['#weight'] = 2;
+      
+       
+      $form['actions']['login_link'] = array(
+        '#markup'=> '<a href="/user/login">Back</a>',
+        '#weight' => 60,
+      );
+      $form['actions']['login_link']['#prefix'] = '<div class="col-xs-6 text-center nopadding">';
+      $form['actions']['login_link']['#suffix'] = '</div>';
+      $form['actions']['login_link']['#weight'] = 2;
+      $form['#suffix'] = '</div>';
+      
+      break;
+      
+    case 'user_profile_form':
+      
+      $form['#prefix'] = '<div class="container bg-white">';
+      $form['account']['name']['#custom_theme'] = 'edit_profile_form_element';
+      $form['account']['mail']['#custom_theme'] = 'edit_profile_form_element';
+      $form['account']['pass']['#custom_theme'] = 'edit_profile_form_element_pass';
+      $form['account']['current_pass']['#custom_theme'] = 'edit_profile_form_element';
+      $form['account']['current_pass_required_values']['#custom_theme'] = 'edit_profile_form_element';
+      $form['actions']['submit']['#attributes']['class'][] = 'btn btn-primary';
+      $form['#suffix'] = '</div>';
+      $form['#process'][] = 'itlab_site_user_registration_process';
+      
+      break;
+    
+    case 'views_exposed_form':
+      if ($form['#id'] === 'views-exposed-form-knowledge-base-knowledge-base') {
+        $form['submit']['#prefix'] = '<div style="display: none;">';
+        $form['submit']['#suffix'] = '</div>';
+        if (isset($form['field_knowledge_scope_technology_tid'])){
+          if ($form['field_knowledge_scope_technology_tid']['#type'] === 'select') {
+            $form['field_knowledge_scope_technology_tid']['#custom_theme'] = 'knowledge_base_filter';
+            $form['field_knowledge_scope_technology_tid']['#options']['All'] = 'All';
+          }
+        }
+      }
+      
+      break;
+  }
+}
+
+function itlab_site_unset_field_desc(&$form, $field_name){
+  if (isset($form[$field_name]) && isset($form[$field_name]['#description'])){
+    unset($form[$field_name]['#description']);
+  }
+}
+
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function itlab_site_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+    return 'plugins/' . $plugin_type;
+  }
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function itlab_site_theme() {
+  // Safety: go away if CTools is not at an appropriate version.
+  if (!module_invoke('ctools', 'api_version', '2.0.9')) {
+    return array();
+  }
+  $theme = array();
+
+  $theme['custom_header_pane'] = array(
+    'variables' => array(
+      'main_menu' => null,
+      'user_menu' => null,
+    ),
+    'path' => drupal_get_path('module', 'itlab_site') . '/templates',
+    'template' => 'custom-header-pane',
+  );
+  
+  $theme['user_login'] = array(
+    'render element' => 'form',
+    'path' => drupal_get_path('module', 'itlab_site') . '/templates',
+    'template' => 'user-login',
+  );
+  
+  $theme['user_pass'] = array(
+    'render element' => 'form',
+    'path' => drupal_get_path('module', 'itlab_site') . '/templates',
+    'template' => 'user-pass',
+  );
+  
+  $theme['user_register_form'] = array(
+    'render element' => 'form',
+    'path' => drupal_get_path('module', 'itlab_site') . '/templates',
+    'template' => 'user-register',
+  );
+  
+  $theme['form_field'] = array(
+    'template' => 'form_field',
+    'pattern'   => 'form_field__',
+    'variables' => array(
+      'vars' => null,
+     'prefix' => null,
+     'suffix' => null,
+    ),
+  );
+  
+  $theme['user_profile_form'] = array(
+    'render element' => 'form',
+    'path' => drupal_get_path('module', 'itlab_site') . '/templates',
+    'template' => 'user-profile-edit',
+  );
+  $theme['custom_field_collection_view'] = array(
+    'render element' => 'element',
+    'function' => 'itlab_site_custom_field_collection_view',
+  );
+  
+  return $theme;
+}
+
+
+function itlab_site_menu_alter(&$items) {
+  if (isset($items['messages/new'])) {
+    $items['messages/new']['type'] = MENU_LOCAL_TASK;
+  }
+  /*if (isset($items['messages'])) {
+    $items['messages']['title callback'] = 'itlab_privatemsg_title_callback';
+  }*/
+}
+
+function itlab_site_user_registration_process(&$element){
+  if (!empty($element['profile_student'])){
+    foreach($element['profile_student'] as $field_name => &$field){
+      if (is_array($field) && !empty($field[LANGUAGE_NONE])){
+        if ( !empty($field[LANGUAGE_NONE]['#type']) && $field[LANGUAGE_NONE]['#type'] === 'select'){
+          if ($field_name === 'field_custom_profile_preferences'){
+            $field[LANGUAGE_NONE]['#custom_theme'] = 'register_form_select_left';
+          } elseif ($field_name === 'field_custom_profile_technology'){
+            $field[LANGUAGE_NONE]['#custom_theme'] = 'register_form_select_right';
+          } else {
+            $field[LANGUAGE_NONE]['#custom_theme'] = 'register_form_element';
+          }
+          $field[LANGUAGE_NONE]['#attributes']['class'][] = 'form-control';
+        } else {
+          $field[LANGUAGE_NONE][0]['value']['#custom_theme'] = 'register_form_element';
+          $field[LANGUAGE_NONE][0]['value']['#attributes']['class'][] = 'form-control';
+        }
+      }
+    }
+  }
+  
+  return $element;
+}
+
+
+function itlab_privatemsg_title_callback($title = NULL) {
+  $count = privatemsg_unread_count();
+  $title = '<i class="fa fa-envelope" aria-hidden="true"></i>';
+  $title .= t('Messages');
+  if ($count > 0) {
+    $title .= '<span class="label label-warning">' . $count . t('new') . '</span>';
+  }
+  return $title;
+}
+
+
+
+function itlab_site_element_info_alter(array &$info){
+  if (isset($info['password_confirm'])){
+    if (isset($info['password_confirm']['#process'])){
+      $info['password_confirm']['#process'][0] = 'itlab_site_form_process_password_confirm';
+    }
+  }
+}
+
+
+function itlab_site_form_process_password_confirm($element) {
+  $element['pass1'] = array(
+    '#type' => 'password',
+    '#title' => t('Password'),
+    '#value' => empty($element['#value']) ? NULL : $element['#value']['pass1'],
+    '#required' => $element['#required'],
+    '#attributes' => array('class' => array('password-field')),
+    '#custom_theme' => 'edit_profile_form_element',
+  );
+  $element['pass2'] = array(
+    '#type' => 'password',
+    '#title' => t('Confirm password'),
+    '#value' => empty($element['#value']) ? NULL : $element['#value']['pass2'],
+    '#required' => $element['#required'],
+    '#attributes' => array('class' => array('password-confirm')),
+    '#custom_theme' => 'edit_profile_form_element',
+  );
+  $element['#element_validate'] = array('password_confirm_validate');
+  $element['#tree'] = TRUE;
+
+  if (isset($element['#size'])) {
+    $element['pass1']['#size'] = $element['pass2']['#size'] = $element['#size'];
+  }
+
+  return $element;
+}
+
+function itlab_site_menu(){
+  $items = array();
+  
+  $items['action/start'] = array(
+    'page callback' => 'itlab_site_courses_begin',
+    'page arguments' => array(1, 'foo'),
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+  );
+  
+  $items['action/done'] = array(
+    'page callback' => 'itlab_site_courses_done',
+    'page arguments' => array(),
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+  );
+  
+  $items['action/english-request'] = array(
+    'page callback' => 'itlab_site_english_request',
+    'page arguments' => array(),
+    'type' => MENU_CALLBACK,
+    'access callback' => TRUE,
+  );
+  
+  return $items; 
+}
+
+function itlab_site_courses_done(){
+     if (filter_has_var(INPUT_POST , 'delta')){
+         global $user;
+         if ($user) {
+             $delta = filter_input(INPUT_POST, 'delta', FILTER_SANITIZE_NUMBER_INT);
+             $profile = profile2_load_by_user($user, 'student');
+             $progress_field_vals = $profile->field_custom_profile_in_progress[LANGUAGE_NONE];
+             if (isset($progress_field_vals[$delta])){
+                 $new_val = $progress_field_vals[$delta];
+                 $profile->field_custom_profile_passed[LANGUAGE_NONE][] = $new_val;
+                 unset($profile->field_custom_profile_in_progress[LANGUAGE_NONE][$delta]);
+                 profile2_save($profile);
+             } else {
+                 return null;
+             }
+         }
+     }
+}
+
+function itlab_site_english_request(){
+  global $user;
+  drupal_add_http_header('Content-Type', 'application/json');
+  $res = array(
+    'code' => 4002,
+    'data' => ''
+  );
+  if ($user) {
+    $path = '/user/' . $user->uid;
+    $to = 'ssydor@softserveinc.com';
+    $mail_text = "English evaluation request. From: " . $GLOBALS['base_url'] . $path;
+    
+    $params = array(
+      'subject' => t('ITLab English request'),
+      'body' => $mail_text
+    );
+    
+    $message = drupal_mail('itlab_site', 'request', $to, language_default(), $params);
+    // Only add to the spool if sending was not canceled.
+    if ($message['send']) {
+      $res['data'] = 'Request was sent';
+      print drupal_json_encode($res);
+      drupal_exit();
+      
+    }
+    $res['data'] = 'Something went wrong! Please report to site admin!';
+    print drupal_json_encode($res);
+    drupal_exit();
+  }
+  $res['data'] = 'You can\'t make request for this user';
+  print drupal_json_encode($res);
+  drupal_exit();
+}
+
+/**
+* Implements hook_mail for itlab_site.
+*/
+function itlab_site_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'request':
+      $message['subject'] = $params['subject'];
+      $message['body'][] = $params['body'];
+      break;
+  }
+}
+
+function itlab_site_courses_begin(){
+    if (filter_has_var(INPUT_POST , 'delta') && filter_has_var(INPUT_POST , 'nid')){
+        global $user;
+        if ($user) {
+            $nid = filter_input(INPUT_POST, 'nid', FILTER_SANITIZE_NUMBER_INT);
+            $delta = filter_input(INPUT_POST, 'delta', FILTER_SANITIZE_NUMBER_INT);
+            $node = node_load($nid);
+            if ($node) {
+                if (count($node->field_knowledge_scope_item[LANGUAGE_NONE]) >= $delta + 1){ 
+                    if (array_key_exists(4, $user->roles)) {
+                        
+                        $profile = profile2_load_by_user($user, 'student');
+                        $field_vals = $profile->field_custom_profile_in_progress[LANGUAGE_NONE];
+                        foreach($field_vals as $value) {
+                            if ($value['delta'] == $delta && $value['entity_id'] === $nid) {
+                                return null;
+                            }
+                        }
+                   
+                        $new_val = array(
+                            'field_key' => 'field_knowledge_scope_item',
+                            'entity_type' => 'node',
+                            'revision_id' => null,
+                            'language' => null,
+                            'delta' => $delta,
+                            'entity_id' => $nid,
+                        );
+                        $profile->field_custom_profile_in_progress[LANGUAGE_NONE][] = $new_val;
+                    
+                        profile2_save($profile);
+                    }
+                }
+            }
+        }
+    }
+    return '200';
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function itlab_site_field_formatter_info() {
+  return array(
+    'field_collection_custom' => array(
+      'label' => t('Custom formatter'),
+      'field types' => array('field_collection'),
+      'settings' =>  array(
+        'view_mode' => 'full',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function itlab_site_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $settings = $display['settings'];
+
+  switch ($display['type']) {
+    case 'field_collection_custom':
+    
+      $view_mode = 'full';
+      foreach ($items as $delta => $item) {
+        if ($field_collection = field_collection_field_get_entity($item)) {
+          $element[$delta]['entity'] = $field_collection->view($view_mode);
+          $element[$delta]['#theme_wrappers'] = array('custom_field_collection_view');
+          $element[$delta]['#attributes'] = array();
+        }
+      }
+      break;
+  }
+
+  return $element;
+}
+
+function itlab_site_custom_field_collection_view($variables) {
+  $element = $variables['element'];
+  return $element['#children'];
+}
+
+
+
+/**
+ * Value callback for a field_reference autocomplete element.
+ */
+function itlab_site_field_reference_autocomplete_value($element, $input = FALSE, $form_state) {
+    if ($input === FALSE) {
+        // Construct the autocomplete prefill value.
+        $field_reference = $element['#default_value'];
+        if (!empty($field_reference)) {
+
+            $field_key = field_reference_key_create($field_reference);
+
+            // Get the allowed values for this field.
+            $element_field = field_info_field($element['#field_name']);
+            $options = array(
+                    'append_id' => FALSE,
+                    'entity_type' => $element['#entity_type'],
+                    'bundle' => $element['#bundle'],
+            );
+            
+           // $instance = $form_state['field'][$element['#field_name']][$element['#language']]['instance'];
+            switch ($element['#field_name']){
+                case 'field_knowledge_item_book_file':
+                    $instance = $form_state['field']['field_knowledge_scope_item'][$element['#language']]['instance'];
+                    break;
+            }
+            $refs = field_reference_potential_references($element_field, $instance, $options);
+
+            // Check if $field_key is a key in that list.
+            if (isset($refs[$field_key])) {
+                $field_label = $refs[$field_key];
+            }
+            else {
+                $field_label = t('Missing field');
+            }
+
+            return $field_label . ' [' . $field_key . ']';
+        }
+    }
+}
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function itlab_site_field_widget_form_alter(&$element, &$form_state, $context) {
+    if ($context['field']['type'] == 'field_reference' && $context['instance']['widget']['type'] == 'field_reference_autocomplete') {
+       if ($context['instance']['entity_type'] === 'field_collection_item') {
+           $element['field_key']['#value_callback'] = 'itlab_site_field_reference_autocomplete_value';
+       } 	
+    }
+}

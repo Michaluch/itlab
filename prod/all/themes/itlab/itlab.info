@@ -1,0 +1,19 @@
+name = IT Lab
+description = Custom theme for IT Lab site. 
+package = Custom
+version = VERSION
+core = 7.x
+
+stylesheets[all][] = css/style.css
+stylesheets[all][] = css/custom.css
+
+;stylesheets[print][] = css/print.css
+
+scripts[] =  /js/main.js
+scripts[] =  /js/custom.js
+
+; Panels layouts. You can place multiple layouts under the "layouts" folder.
+plugins[panels][layouts] = layouts
+
+
+

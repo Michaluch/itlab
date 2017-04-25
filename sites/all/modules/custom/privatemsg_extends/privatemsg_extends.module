@@ -1,0 +1,73 @@
+<?php
+
+function privatemsg_extends_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id === 'privatemsg_new'){
+    $form['#prefix'] = '<div class="container bg-white">';
+    if ((user_has_role(3) || user_has_role(5)) && arg(1) !== 'view') {
+      $form['#suffix'] = views_embed_view('recipients');
+      $form['recipient']['#maxlength'] = 9999;
+    }
+    unset($form['recipient']['#autocomplete_path']);
+    unset($form['recipient']['#description']);
+    $form['recipient']['#custom_theme'] = 'new_message_form_element';
+    $form['subject']['#custom_theme'] = 'new_message_form_element';
+    $bnt_class = array('class' => array('btn', 'btn-default'));
+    $form['actions']['submit']['#attributes'] = $bnt_class;
+    
+    // Add class to hardcoded link
+    $doc = new DOMDocument();
+    $doc->loadHTML($form['actions']['cancel']['#markup']);
+    $links = $doc->getElementsByTagName('a');
+    $link = $links->item(0);
+    $link->setAttribute('class' , 'btn btn-default');
+    $form['actions']['cancel']['#markup'] = $doc->saveHTML();
+    $form['#suffix'] = '</div>';
+    
+  } elseif ($form_id === 'privatemsg_list') {
+    $form['#prefix'] = '<div class="container bg-white">';
+    $form['new_mag'] = array(
+      '#markup' => '<a class="btn btn-warning pull-right" href="/messages/new">' . t('Create message') . '</a>',
+      '#weight' => -1
+    );
+    if (isset($form['updated'])) {
+      if (isset($form['updated']['list'])){
+        $form['updated']['list']['#attributes']['class'][] = 'table';
+      }
+    }
+    $form['#suffix'] = '</div>';
+  }
+}
+
+
+function privatemsg_extends_menu_alter(&$items) {
+  if (isset($items['messages'])) {
+    $items['messages']['title callback'] = 'privatemsg_extends_title_callback';
+  }
+  if (isset($items['user/logout'])) {
+    $items['user/logout']['title'] = 'privatemsg_extends_title_callback';
+  }
+ 
+}
+
+function privatemsg_extends_title_callback($title = NULL) {
+  $count = privatemsg_unread_count();
+  $title = t('Messages');
+  if ($count > 0) {
+    $title .= '<span class="label label-warning">' . $count . ' ' . t('new') . '</span>';
+  }
+  return $title;
+}
+
+/**
+ * Add content to the view thread page.
+ *
+ * @param $content
+ *   Render-able array, contains the thread object in #thread.
+ */
+function privatemsg_extends_privatemsg_view_alter(&$content) {
+  $content['#prefix'] = '<div class="container bg-white">';
+  if ( !(user_has_role(3) || user_has_role(5)) && isset($content['participants'])) {
+    unset($content['participants']);
+  }
+  $content['#suffix'] = '</div>';
+}

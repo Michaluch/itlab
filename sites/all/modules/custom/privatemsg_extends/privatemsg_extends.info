@@ -1,0 +1,6 @@
+name = Private messages extends
+description = Extends private messages module.
+package = Custom
+core = 7.x
+dependencies[] = privatemsg
+dependencies[] = profile2

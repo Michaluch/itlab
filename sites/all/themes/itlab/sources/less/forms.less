@@ -1,0 +1,81 @@
+.form-main {
+	min-height: 100%;
+	display: flex;
+	align-items: center;
+	& > div {
+	 	position: relative;
+		margin: 0 auto;
+		padding: 40px 25px 25px 25px;
+		background: rgba(237, 237, 237, 0.94);
+		background: linear-gradient(to bottom, rgba(214, 210, 210, .95), rgba(237, 237, 237, 1));
+		border-radius: 10px;
+		box-shadow: 0 1px 4px 0 rgba(0,0,0,.3);
+		
+		.error.messages-inline {
+			float: right;
+			margin: -15px 10px 0 0;
+			font-size: 9px;
+			color: #f00
+		}
+		.hlp-lnk {
+			display: inline-block;
+			float: right;
+			padding: 5px;
+			font-size: 12px;
+		}
+
+		&::after,
+		&::before {
+			display: block;
+			position: absolute;
+			top: 0;
+			font-size: 24px;
+			font-weight: bold;
+		}
+
+		&::before {
+			content: "IT";
+			color: #28d1dc;
+			left: 50%;
+			width: 22px;
+			margin-left: -33px;
+		}
+
+		&::after {
+			content: "Lab";
+			color: #fff;
+			left: 50%;
+			width: 44px;
+			margin-left: -5px;
+		}
+	}
+}
+
+
+#user-login {
+	.form-main;
+  	min-width: 301px;
+
+  	label {
+		padding: 0;
+
+		.form-required {
+  			color: #f00;
+		}
+  	}
+}
+
+#user-register-form {
+	.form-main;
+
+	input {
+		width: 100%;
+	}
+}
+
+#user-pass {
+	.form-main;
+	.error.messages-inline {
+		margin-top: -50px;
+	}
+}

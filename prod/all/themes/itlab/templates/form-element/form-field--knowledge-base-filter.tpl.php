@@ -1,0 +1,1 @@
+<?php print $prefix . $vars['element']['#children'] . $suffix; ?>

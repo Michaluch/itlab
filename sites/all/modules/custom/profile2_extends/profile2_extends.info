@@ -1,0 +1,5 @@
+name = Profiloe2 extends
+description = Extends pofiloe2  module.
+package = Custom
+core = 7.x
+dependencies[] = profile2

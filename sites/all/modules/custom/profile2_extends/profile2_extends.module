@@ -1,0 +1,33 @@
+<?php
+
+function profile2_extends_form_profile2_form_alter(&$form, &$form_state) {
+  if (!(user_has_role(3) || user_has_role(5))) {
+    if (isset($form['profile_student'])){
+      if (isset($form['profile_student']['field_custom_profile_note'])){
+        unset($form['profile_student']['field_custom_profile_note']);
+      }
+      if (isset($form['profile_student']['field_custom_profile_rating'])){
+        unset($form['profile_student']['field_custom_profile_rating']);
+      }
+      
+      if (isset($form['profile_student']['field_custom_profile_in_progress'])){
+          unset($form['profile_student']['field_custom_profile_in_progress']);
+      }
+      
+      if (isset($form['profile_student']['field_custom_profile_passed'])){
+          unset($form['profile_student']['field_custom_profile_passed']);
+      }
+    }
+  }
+}
+function profile2_extends_profile2_view_alter(&$build) {
+  if (!(user_has_role(3) || user_has_role(5))) {
+    if (isset($build['field_custom_profile_rating'])){
+      unset($build['field_custom_profile_rating']);
+    }
+    if (isset($build['field_custom_profile_note'])){
+      unset($build['field_custom_profile_note']);
+    }
+  }
+}
+

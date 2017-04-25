@@ -1,0 +1,4 @@
+name = IT lab site
+description = Provides core logic for IT lab site.
+package = Custom
+core = 7.x
