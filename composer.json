@@ -1,4 +1,5 @@
 {
+    "name": "u8497/app",
     "require": {
         "ext-gd": "*"
     }
