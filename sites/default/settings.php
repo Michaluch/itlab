@@ -263,7 +263,14 @@ $databases['default']['default'] = array(
   'prefix' => '',
 );
 */
-
+$databases['default']['default'] = array(
+  'driver' => 'mysql',
+  'database' => 'heroku_c8415e3bd2d7706',
+  'username' => 'be4049ec850f42',
+  'password' => '9aacbd4606eb27f ',
+  'host' => 'https://us-cdbr-iron-east-03.cleardb.net',
+  'prefix' => '',
+);
 /**
  * Access control for update.php script.
  *
