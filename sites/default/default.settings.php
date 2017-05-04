@@ -253,7 +253,7 @@ $databases = array();
 //  'host' => '127.0.0.1',
 //  'prefix' => '',
 //);
-
+/*
 $databases['default']['default'] = array(
   'driver' => 'mysql',
   'database' => 'heroku_c8415e3bd2d7706',
